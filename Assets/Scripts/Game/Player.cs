@@ -48,9 +48,6 @@ public class Player : MonoBehaviour
     public Action OnThrowStart;
     public Action OnThrowEnd;
 
-
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-
     public static Player mInstance;
 
     public GameObject ItemHolder;
@@ -219,7 +216,7 @@ public class Player : MonoBehaviour
 
         if(bIsThrowing)
         {
-            ThrowPower += Time.deltaTime * 500.0f;
+            ThrowPower += Time.deltaTime * 800.0f;
             if (ThrowPower > MaxThrowPower)
             {
                 ThrowPower = MaxThrowPower;
