@@ -13,6 +13,10 @@ public class Player : MonoBehaviour
 
     private InputAction LookAction;
 
+    private InputAction InteractAction;
+
+    private InputAction ShootAction;
+
     [SerializeField]
     private CharacterController Controller;
 
@@ -34,14 +38,32 @@ public class Player : MonoBehaviour
     [SerializeField]
     private LayerMask InteractableLayer;
 
+    [SerializeField]
+    private LayerMask NonInteractableLayer;
+
     private IInteractable CurrentInteractable;
 
     public Action<IInteractable> OnInteractChange;
+
+    public Action OnThrowStart;
+    public Action OnThrowEnd;
 
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
 
     public static Player mInstance;
+
+    public GameObject ItemHolder;
+    private GameObject HeldItem;
+
+
+
+    private float ThrowPower = 1.0f;
+
+    [SerializeField]
+    private float MaxThrowPower = 500.0f;
+
+    private bool bIsThrowing = false;
 
     public static Player GetInstance()
     {
@@ -64,11 +86,115 @@ public class Player : MonoBehaviour
         InputActions = new InputSystem_Actions();
         MoveAction = InputActions.Player.Move;
         LookAction = InputActions.Player.Look;
+
+        InteractAction = InputActions.Player.Interact;
+        InteractAction.performed += OnInteractPerformed;
+
+        ShootAction = InputActions.Player.Shoot;
+        ShootAction.canceled += OnShootCancelled;
+        ShootAction.started += OnShootStarted;
     }
+
+
+    public float GetThrowStrengthPercentage()
+    {
+        float result = ThrowPower / MaxThrowPower;
+
+        return result;
+    }
+    private void OnInteractPerformed(InputAction.CallbackContext context)
+    {
+        Debug.Log("Attempt Interact");
+        if (CurrentInteractable == null)
+        {
+            if (HeldItem != null)
+            {
+                ReleaseHeldItem();
+            }
+            return;
+        }
+        if (CurrentInteractable.CanInteract())
+        {
+            CurrentInteractable.Interact(this);
+        }
+    }
+
+    private void OnShootCancelled(InputAction.CallbackContext context)
+    {
+        if (HeldItem)
+        {
+            GameObject obj = HeldItem;
+            ReleaseHeldItem();
+
+            Rigidbody rb = obj.GetComponent<Rigidbody>();
+            if(rb)
+            {
+                rb.AddForce(CameraRef.transform.forward * ThrowPower);
+            }
+            Debug.Log("Threw " + obj.name + " with force of " + ThrowPower);
+            bIsThrowing = false;
+            OnThrowEnd?.Invoke();
+        }
+
+    }
+
+    private void OnShootStarted(InputAction.CallbackContext context)
+    {
+        if (HeldItem)
+        {
+            bIsThrowing = true;
+            ThrowPower = 0.0f;
+            OnThrowStart?.Invoke();
+        }
+    }
+
+    public void PickupItem(GameObject obj)
+    {
+        if (HeldItem)
+        {
+            ReleaseHeldItem();
+        }
+        EquipHeldItem(obj);
+       
+    }
+
+    private void EquipHeldItem(GameObject obj)
+    {
+        Debug.Log("Equipping item: " + obj.name);
+        HeldItem = obj;
+        HeldItem.transform.SetParent(ItemHolder.transform);
+
+        Rigidbody rb = HeldItem.GetComponent<Rigidbody>();
+        HeldItem.gameObject.layer = LayerMask.NameToLayer("Non-Interactable");
+        if (rb != null)
+        {
+            rb.isKinematic = true;
+        }
+        HeldItem.transform.position = ItemHolder.transform.position;
+
+    }
+    private void ReleaseHeldItem()
+    {
+        Debug.Log("Releasing item: " + HeldItem.name);
+        HeldItem.transform.parent = null;
+        Rigidbody rb = HeldItem.GetComponent<Rigidbody>();
+
+        if (rb != null)
+        {
+            rb.isKinematic = false;
+            
+        }
+        HeldItem.gameObject.layer = LayerMask.NameToLayer("Interactable");
+        HeldItem.GetComponent<IInteractable>().Drop();
+        HeldItem = null;
+        OnThrowEnd?.Invoke();
+    }
+
     private void OnEnable()
     {
         MoveAction.Enable();
         LookAction.Enable();
+        InteractAction.Enable();
 
         InputActions.Enable();
         Cursor.lockState = CursorLockMode.Locked; 
@@ -78,6 +204,7 @@ public class Player : MonoBehaviour
     {
         MoveAction.Disable();
         LookAction.Disable();
+        InteractAction.Disable();
 
         InputActions.Disable();
         Cursor.lockState = CursorLockMode.None;
@@ -89,6 +216,15 @@ public class Player : MonoBehaviour
         Move(MoveAction.ReadValue<Vector2>());
         Look(LookAction.ReadValue<Vector2>());
         DetectObjects();
+
+        if(bIsThrowing)
+        {
+            ThrowPower += Time.deltaTime * 500.0f;
+            if (ThrowPower > MaxThrowPower)
+            {
+                ThrowPower = MaxThrowPower;
+            }
+        }
     }
 
     private void DetectObjects()
@@ -96,11 +232,9 @@ public class Player : MonoBehaviour
         RaycastHit hit;
         Ray ray = CameraRef.ScreenPointToRay(new Vector3(Screen.width / 2f, Screen.height / 2f, 0f));
         Debug.DrawRay(transform.position, CameraRef.transform.forward, Color.rebeccaPurple);
-        if (Physics.Raycast(ray, out hit, 30.0f, InteractableLayer))
+        if (Physics.Raycast(ray, out hit, 3.0f, InteractableLayer))
         {
-            Debug.Log("HIT" + hit.collider.name);
             CurrentInteractable = hit.collider.gameObject.GetComponent<IInteractable>();
-
 
         }
         else
@@ -115,7 +249,7 @@ public class Player : MonoBehaviour
         float yaw = value.x * ySensitivity;
         float pitchDelta = -value.y * ySensitivity;
 
-        Pitch = Mathf.Clamp(Pitch + pitchDelta, -45f, 45f);
+        Pitch = Mathf.Clamp(Pitch + pitchDelta, -90f, 45f);
 
         CameraRef.transform.localRotation = Quaternion.Euler(Pitch, 0f, 0f);
         transform.Rotate(Vector3.up, yaw);
