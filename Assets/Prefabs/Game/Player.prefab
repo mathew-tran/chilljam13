@@ -150,6 +150,7 @@ GameObject:
   - component: {fileID: 7521112102601788020}
   - component: {fileID: 257849691518752528}
   - component: {fileID: 5799066750324903539}
+  - component: {fileID: 5751365219925179262}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -264,4 +265,32 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9d0da0dab6b3fee42906953d3540063a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Player
-  InputActions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
+  Controller: {fileID: 5751365219925179262}
+  CameraRef: {fileID: 2694281751235639134}
+  MoveSpeed: 5
+  ySensitivity: 0.1
+--- !u!143 &5751365219925179262
+CharacterController:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7013268055429668921}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Height: 2
+  m_Radius: 0.5
+  m_SlopeLimit: 45
+  m_StepOffset: 0.3
+  m_SkinWidth: 0.08
+  m_MinMoveDistance: 0.001
+  m_Center: {x: 0, y: 0, z: 0}

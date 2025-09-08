@@ -7,34 +7,95 @@ public class Player : MonoBehaviour
     public InputSystem_Actions InputActions;
 
     private InputAction MoveAction;
+
+    private InputAction LookAction;
+
+    [SerializeField]
+    private CharacterController Controller;
+
+    [SerializeField]
+    private Camera CameraRef;
+
+    [SerializeField]
+    private float MoveSpeed = 5;
+
+    private float Gravity = 9.8f;
+
+    private Vector3 PlayerVelocity;
+
+    [SerializeField]
+    private float ySensitivity = .01f;
+
+    private float Pitch = 0.0f;
+
     // Start is called once before the first execution of Update after the MonoBehaviour is created
 
     private void Awake()
     {
+        InputActions = new InputSystem_Actions();
         MoveAction = InputActions.Player.Move;
-        MoveAction.performed += MoveAction_performed;
+        LookAction = InputActions.Player.Look;
     }
     private void OnEnable()
     {
         MoveAction.Enable();
+        LookAction.Enable();
+
+        InputActions.Enable();
+        Cursor.lockState = CursorLockMode.Locked; 
+        Cursor.visible = false;                   
     }
     private void OnDisable()
     {
         MoveAction.Disable();
-    }
-    void Start()
-    {
-        
+        LookAction.Disable();
+
+        InputActions.Disable();
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
     }
 
-    private void MoveAction_performed(InputAction.CallbackContext obj)
+    private void Update()
     {
-        Debug.Log("Performed");
+        Move(MoveAction.ReadValue<Vector2>());
+        Look(LookAction.ReadValue<Vector2>());
     }
 
-    // Update is called once per frame
-    void Update()
+    private void Look(Vector2 value)
     {
-        
+        float yaw = value.x * ySensitivity;
+        float pitchDelta = -value.y * ySensitivity;
+
+        Pitch = Mathf.Clamp(Pitch + pitchDelta, -45f, 45f);
+
+        CameraRef.transform.localRotation = Quaternion.Euler(Pitch, 0f, 0f);
+        transform.Rotate(Vector3.up, yaw);
+    }
+
+    private void Move(Vector2 vector)
+    {
+        bool bIsGrounded = Controller.isGrounded;
+
+        var moveVector = new Vector3(vector.x, 0, vector.y);
+        moveVector = transform.TransformDirection(moveVector);
+
+       
+
+        if (bIsGrounded == false && PlayerVelocity.y > 0)
+        {
+            PlayerVelocity.y = Gravity;
+        }
+        else
+        {
+            PlayerVelocity.y = 0;
+        }
+
+        PlayerVelocity.y -= Gravity;
+
+        Vector3 finalMove = moveVector * MoveSpeed + PlayerVelocity.y * Vector3.up;
+        Controller.Move(finalMove * Time.deltaTime);
+        Debug.Log(transform.gameObject.transform.position); 
+
+
     }
 }
