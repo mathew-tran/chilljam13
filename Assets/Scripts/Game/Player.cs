@@ -1,5 +1,8 @@
+using System;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.InputSystem;
+using UnityEngine.VFX;
 
 public class Player : MonoBehaviour
 {
@@ -28,10 +31,36 @@ public class Player : MonoBehaviour
 
     private float Pitch = 0.0f;
 
+    [SerializeField]
+    private LayerMask InteractableLayer;
+
+    private IInteractable CurrentInteractable;
+
+    public Action<IInteractable> OnInteractChange;
+
+
     // Start is called once before the first execution of Update after the MonoBehaviour is created
 
+    public static Player mInstance;
+
+    public static Player GetInstance()
+    {
+        return mInstance;
+    }
+
+
+    public IInteractable GetInteractable()
+    {
+        return CurrentInteractable;
+    }
     private void Awake()
     {
+        if (mInstance != null)
+        {
+            Debug.Log("Player::AWAKE More than one player!");
+        }
+        mInstance = this;
+
         InputActions = new InputSystem_Actions();
         MoveAction = InputActions.Player.Move;
         LookAction = InputActions.Player.Look;
@@ -59,6 +88,26 @@ public class Player : MonoBehaviour
     {
         Move(MoveAction.ReadValue<Vector2>());
         Look(LookAction.ReadValue<Vector2>());
+        DetectObjects();
+    }
+
+    private void DetectObjects()
+    {
+        RaycastHit hit;
+        Ray ray = CameraRef.ScreenPointToRay(new Vector3(Screen.width / 2f, Screen.height / 2f, 0f));
+        Debug.DrawRay(transform.position, CameraRef.transform.forward, Color.rebeccaPurple);
+        if (Physics.Raycast(ray, out hit, 30.0f, InteractableLayer))
+        {
+            Debug.Log("HIT" + hit.collider.name);
+            CurrentInteractable = hit.collider.gameObject.GetComponent<IInteractable>();
+
+
+        }
+        else
+        {
+            CurrentInteractable = null;
+        }
+        OnInteractChange?.Invoke(CurrentInteractable);
     }
 
     private void Look(Vector2 value)
@@ -94,7 +143,6 @@ public class Player : MonoBehaviour
 
         Vector3 finalMove = moveVector * MoveSpeed + PlayerVelocity.y * Vector3.up;
         Controller.Move(finalMove * Time.deltaTime);
-        Debug.Log(transform.gameObject.transform.position); 
 
 
     }
