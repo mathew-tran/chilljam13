@@ -10,5 +10,7 @@ public abstract class IInteractable : MonoBehaviour
 
     public abstract void Drop();
 
+    public float DistanceAwayFromPlayer = 1.0f;
+
 
 }

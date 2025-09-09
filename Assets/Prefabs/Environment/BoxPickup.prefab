@@ -81,7 +81,7 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 0.8, y: 0.8, z: 0.8}
+  m_Size: {x: 0.7, y: 0.7, z: 0.7}
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!114 &3692497295544403434
 MonoBehaviour:
@@ -95,7 +95,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 38b3bf59da840ba4b847b79461c3fd73, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Box
+  DistanceAwayFromPlayer: 1
   Data: {fileID: 11400000, guid: 5766eec8ac535a441bcb413c9e1bcf63, type: 2}
+  OnBoxDeath:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!1001 &7011029584974714574
 PrefabInstance:
   m_ObjectHideFlags: 0

@@ -1,8 +1,8 @@
 using System;
+using System.Xml.Schema;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.InputSystem;
-using UnityEngine.VFX;
 
 public class Player : MonoBehaviour
 {
@@ -21,6 +21,8 @@ public class Player : MonoBehaviour
 
     private InputAction SprintAction;
 
+    private InputAction RotateAction;
+
     [SerializeField]
     private CharacterController Controller;
 
@@ -36,6 +38,11 @@ public class Player : MonoBehaviour
 
     [SerializeField]
     private float ySensitivity = .01f;
+
+    private float ObjectPitch = 0.0f;
+    private float ObjectYaw = 0.0f;
+    private float ObjectOffset = 0.0f;
+    private Vector3 LocalObjectStartPosition;
 
     private float Pitch = 0.0f;
 
@@ -78,6 +85,13 @@ public class Player : MonoBehaviour
     private float MaxRunningModifier = 2.5f;
     private bool bIsRunning = false;
 
+    private enum MODE
+    {
+        MOVEMENT_MODE,
+        OBJECT_MODE
+    }
+
+    private MODE CurrentMode = MODE.MOVEMENT_MODE;
 
     public static Player GetInstance()
     {
@@ -114,6 +128,23 @@ public class Player : MonoBehaviour
         SprintAction = InputActions.Player.Sprint;
         SprintAction.started += OnSprintStarted;
         SprintAction.canceled += OnSprintCancelled;
+
+        RotateAction = InputActions.Player.Rotate;
+        RotateAction.started += OnRotateStarted;
+        RotateAction.canceled += OnRotateEnded;
+    }
+
+    private void OnRotateEnded(InputAction.CallbackContext context)
+    {
+        CurrentMode = MODE.MOVEMENT_MODE;
+    }
+
+    private void OnRotateStarted(InputAction.CallbackContext context)
+    {
+        if (HeldItem)
+        {
+            CurrentMode = MODE.OBJECT_MODE;
+        }
     }
 
     private void OnSprintCancelled(InputAction.CallbackContext context)
@@ -194,7 +225,9 @@ public class Player : MonoBehaviour
         if (HeldItem)
         {
             ReleaseHeldItem();
+            return;
         }
+
         EquipHeldItem(obj);
        
     }
@@ -209,9 +242,11 @@ public class Player : MonoBehaviour
         HeldItem.gameObject.layer = LayerMask.NameToLayer("Non-Interactable");
         if (rb != null)
         {
-            rb.isKinematic = true;
+            rb.isKinematic = false;
+            rb.useGravity = false;
+            LocalObjectStartPosition = HeldItem.transform.localPosition;
+            ObjectOffset = obj.GetComponent<IInteractable>().DistanceAwayFromPlayer;
         }
-        HeldItem.transform.position = ItemHolder.transform.position;
 
     }
     private void ReleaseHeldItem()
@@ -223,7 +258,9 @@ public class Player : MonoBehaviour
         if (rb != null)
         {
             rb.isKinematic = false;
-            
+            rb.useGravity = true;
+            ObjectPitch = 0.0f;
+
         }
         HeldItem.gameObject.layer = LayerMask.NameToLayer("Interactable");
         HeldItem.GetComponent<IInteractable>().Drop();
@@ -239,6 +276,7 @@ public class Player : MonoBehaviour
         JumpAction.Enable();
         InteractAction.Enable();
         SprintAction.Enable();
+        RotateAction.Enable();
 
         InputActions.Enable();
         Cursor.lockState = CursorLockMode.Locked; 
@@ -252,19 +290,20 @@ public class Player : MonoBehaviour
         JumpAction.Disable();
         InteractAction.Disable();
         SprintAction.Disable();
+        RotateAction.Disable();
 
         InputActions.Disable();
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
     }
 
-    private void Update()
+    private void DoMoveModeControls()
     {
         Move(MoveAction.ReadValue<Vector2>());
         Look(LookAction.ReadValue<Vector2>());
         DetectObjects();
 
-        if(bIsThrowing)
+        if (bIsThrowing)
         {
             ThrowPower += Time.deltaTime * 800.0f;
             if (ThrowPower > MaxThrowPower)
@@ -272,6 +311,41 @@ public class Player : MonoBehaviour
                 ThrowPower = MaxThrowPower;
             }
         }
+        if (HeldItem)
+        {
+            Rigidbody rb = HeldItem.GetComponent<Rigidbody>();
+            if (rb)
+            {
+                rb.linearVelocity = Vector3.zero;
+                rb.angularVelocity = Vector3.zero;
+            }
+        }
+    }
+
+    private void DoObjectModeControls()
+    {
+        if (HeldItem)
+        {
+            RotateObject(LookAction.ReadValue<Vector2>());
+            MoveObject(MoveAction.ReadValue<Vector2>());
+        }
+        else
+        {
+            CurrentMode = MODE.MOVEMENT_MODE;
+        }
+    }
+    private void Update()
+    {
+        switch(CurrentMode)
+        {
+            case MODE.MOVEMENT_MODE:
+                DoMoveModeControls();
+                break;
+            case MODE.OBJECT_MODE:
+                DoObjectModeControls();
+                break;
+        }
+      
 
 
         CameraRef.fieldOfView = Mathf.Lerp(60, 80, GetMaxSpeedPercent());
@@ -297,6 +371,32 @@ public class Player : MonoBehaviour
         }
         OnInteractChange?.Invoke(CurrentInteractable);
     }
+
+    private void MoveObject(Vector2 value)
+    {
+        ObjectOffset += value.y;
+        ObjectOffset = Mathf.Clamp(ObjectOffset, 1f, 3f);
+    }
+    private void RotateObject(Vector2 value)
+    {
+        float yaw = value.x * ySensitivity;
+        float yawDelta = -value.y * ySensitivity;
+
+        float pitch = value.y * ySensitivity;
+        float pitchDelta = -value.x * ySensitivity;
+
+
+
+        ObjectPitch = Mathf.Clamp(ObjectPitch + yawDelta, -90f, 90f);
+
+        ObjectYaw = Mathf.Clamp(ObjectYaw + pitchDelta, -1800f, 180f);
+
+        HeldItem.transform.localRotation = Quaternion.Euler(ObjectPitch, ObjectYaw, 0f);
+
+        HeldItem.transform.localPosition = Vector3.MoveTowards(HeldItem.transform.localPosition, LocalObjectStartPosition, Time.deltaTime);
+        HeldItem.GetComponent<Rigidbody>().linearVelocity = Vector3.zero;
+    }
+
 
     private void Look(Vector2 value)
     {

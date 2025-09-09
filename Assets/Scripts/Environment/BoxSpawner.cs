@@ -76,7 +76,6 @@ public class BoxSpawner : IInteractable
         playerRef.PickupItem(gameObject);
         KillSpawnedObject();
         SpawnTimer.StopTimer();
-        gameObject.transform.rotation = Quaternion.identity;
 
     }
 
@@ -84,25 +83,5 @@ public class BoxSpawner : IInteractable
     {
         bCanInteract = true;
         SpawnTimer.StartTimer();
-    }
-
-    private void OnCollisionEnter(Collision collision)
-    {
-        Rigidbody rb = GetComponent<Rigidbody>();
-        if (rb)
-        {
-            return;
-            if (rb.isKinematic)
-            {
-                Vector3 dir;
-                float distance;
-                
-                Physics.ComputePenetration(GetComponent<Collider>(), transform.position, transform.rotation,
-                    collision.gameObject.GetComponent<Collider>(), collision.gameObject.transform.position, collision.gameObject.transform.rotation,
-                    out dir, out distance);
-                transform.position += dir.normalized;
-                Debug.Log(dir + ":" + distance);
-            }
-        }
     }
 }
