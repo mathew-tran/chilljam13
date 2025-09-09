@@ -1,7 +1,8 @@
+using NUnit.Framework.Interfaces;
 using System;
 using UnityEngine;
 
-public class BoxSpawner : MonoBehaviour
+public class BoxSpawner : IInteractable
 {
     private GameObject SpawnedObject;
 
@@ -17,6 +18,8 @@ public class BoxSpawner : MonoBehaviour
     [SerializeField]
     private TriggerButton TriggerButton;
 
+    private bool bCanInteract = true;
+
     private void Awake()
     {
         SpawnTimer.Setup(3, false);
@@ -27,6 +30,7 @@ public class BoxSpawner : MonoBehaviour
 
     private void OnTimerCompleted()
     {
+        GetComponent<Rigidbody>().isKinematic = true;
         SpawnedObject = Instantiate(ObjectToSpawn, SpawnPosition.position, Quaternion.identity);
         SpawnedObject.GetComponent<Box>().OnBoxDeath.AddListener(OnBoxDeath);
     }
@@ -38,19 +42,67 @@ public class BoxSpawner : MonoBehaviour
 
     public void SpawnObject()
     {
+        KillSpawnedObject();
+        SpawnTimer.StartTimer();
+    }
+
+    private void KillSpawnedObject()
+    {
         if (SpawnedObject != null)
         {
             SpawnedObject.GetComponent<Box>().OnBoxDeath.RemoveAllListeners();
             Destroy(SpawnedObject);
         }
-        SpawnTimer.StartTimer();
     }
 
     private void OnDestroy()
     {
-        if(SpawnedObject != null)
+        KillSpawnedObject();
+    }
+
+    public override string GetInteractableName()
+    {
+        return "Set Pedestal";
+    }
+
+    public override bool CanInteract()
+    {
+        return bCanInteract;
+    }
+
+    public override void Interact(Player playerRef)
+    {
+        bCanInteract = false;
+        playerRef.PickupItem(gameObject);
+        KillSpawnedObject();
+        SpawnTimer.StopTimer();
+        gameObject.transform.rotation = Quaternion.identity;
+
+    }
+
+    public override void Drop()
+    {
+        bCanInteract = true;
+        SpawnTimer.StartTimer();
+    }
+
+    private void OnCollisionEnter(Collision collision)
+    {
+        Rigidbody rb = GetComponent<Rigidbody>();
+        if (rb)
         {
-            Destroy(SpawnedObject);
+            return;
+            if (rb.isKinematic)
+            {
+                Vector3 dir;
+                float distance;
+                
+                Physics.ComputePenetration(GetComponent<Collider>(), transform.position, transform.rotation,
+                    collision.gameObject.GetComponent<Collider>(), collision.gameObject.transform.position, collision.gameObject.transform.rotation,
+                    out dir, out distance);
+                transform.position += dir.normalized;
+                Debug.Log(dir + ":" + distance);
+            }
         }
     }
 }
