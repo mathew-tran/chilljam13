@@ -163,7 +163,6 @@ public class Player : MonoBehaviour
         {
 
             PlayerVelocity.y = Mathf.Sqrt(JumpStrength  * Gravity);
-            Debug.Log("JUMP");
         }
         
     }
@@ -444,6 +443,11 @@ public class Player : MonoBehaviour
         Controller.Move(finalMove * Time.deltaTime);
 
 
+    }
+
+    public void ApplyForce(Vector3 force)
+    {
+        PlayerVelocity = force;
     }
 
     public float GetCurrentMoveSpeed()
