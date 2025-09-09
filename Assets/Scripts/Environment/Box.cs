@@ -4,7 +4,7 @@ public class Box : IInteractable
 {
 
     [SerializeField]
-    private string BoxName = "";
+    private BoxData Data;
 
     private bool bCanInteract = true;
 
@@ -20,7 +20,7 @@ public class Box : IInteractable
 
     public string GetBoxName()
     {
-        return BoxName;
+        return Data.BoxName;
     }
 
     public override string GetInteractableName()

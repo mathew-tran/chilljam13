@@ -95,7 +95,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 38b3bf59da840ba4b847b79461c3fd73, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Box
-  BoxName: Box
+  Data: {fileID: 11400000, guid: 5766eec8ac535a441bcb413c9e1bcf63, type: 2}
 --- !u!1001 &7011029584974714574
 PrefabInstance:
   m_ObjectHideFlags: 0

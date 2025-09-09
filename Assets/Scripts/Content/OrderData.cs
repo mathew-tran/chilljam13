@@ -13,7 +13,7 @@ public class OrderData : ScriptableObject
         List<string> list = new List<string>();
         foreach(BoxData box in data)
         {
-            list.Append(box.BoxName);
+            list.Add(box.BoxName);
         }
 
         return list;

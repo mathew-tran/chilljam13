@@ -15,6 +15,7 @@ public class SortBox : MonoBehaviour
     private void OnBoxEntered(GameObject box)
     {
         Debug.Log("Box killed");
+        GameManager.GetInstance().AttemptToAddItem(box.GetComponent<Box>().GetBoxName());
         Destroy(box.gameObject);
     }
 

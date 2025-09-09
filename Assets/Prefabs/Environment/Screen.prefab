@@ -224,6 +224,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4981261988068281631}
+  - component: {fileID: 3761789715978249234}
+  - component: {fileID: 2442303402974671984}
   m_Layer: 0
   m_Name: Screen
   m_TagString: Untagged
@@ -248,6 +250,42 @@ Transform:
   - {fileID: 4635373191763086361}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &3761789715978249234
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6241876255774961915}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cd07b6d3806a2f34c8b722bb4ab2cf62, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::StatusScreenUI
+  Text: {fileID: 5175047548370170656}
+  Timer: {fileID: 2442303402974671984}
+  CorrectTexture: {fileID: 21300000, guid: 5f723e359b134364b8f836923ed0ec16, type: 3}
+  IncorrectTexture: {fileID: 21300000, guid: 621f38d635fa31e40872a770294af7da, type: 3}
+  ImageReference: {fileID: 4885894629434446445}
+--- !u!114 &2442303402974671984
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6241876255774961915}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 070a0e8997a665f4a90e8107c4191233, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CustomTimer
+  WaitTime: 0.5
+  bIsRunning: 0
+  bIsLooping: 0
+  CurrentTime: 0
+  OnTimerCompleted:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!1 &6534644796754285293
 GameObject:
   m_ObjectHideFlags: 0
