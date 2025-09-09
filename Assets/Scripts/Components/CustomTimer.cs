@@ -20,6 +20,11 @@ public class CustomTimer : MonoBehaviour
         bIsLooping = bLooping;
         bIsRunning = false;
     }
+
+    public bool IsRunning()
+    {
+        return bIsRunning == true && WaitTime > CurrentTime;
+    }
     public void StartTimer()
     {
         CurrentTime = 0.0f;

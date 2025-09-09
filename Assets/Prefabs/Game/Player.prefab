@@ -588,6 +588,7 @@ GameObject:
   - component: {fileID: 5799066750324903539}
   - component: {fileID: 5751365219925179262}
   - component: {fileID: 5224241195832740268}
+  - component: {fileID: 6778914291263872824}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -715,6 +716,8 @@ MonoBehaviour:
     m_Bits: 0
   ItemHolder: {fileID: 6638208200328246476}
   MaxThrowPower: 1500
+  JumpStrength: 5
+  MaxRunningModifier: 5
 --- !u!143 &5751365219925179262
 CharacterController:
   m_ObjectHideFlags: 0
@@ -767,6 +770,25 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 126
   m_CollisionDetection: 0
+--- !u!114 &6778914291263872824
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7013268055429668921}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 070a0e8997a665f4a90e8107c4191233, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CustomTimer
+  WaitTime: 0.25
+  bIsRunning: 0
+  bIsLooping: 0
+  CurrentTime: 0
+  OnTimerCompleted:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!1 &7591164674250720482
 GameObject:
   m_ObjectHideFlags: 0

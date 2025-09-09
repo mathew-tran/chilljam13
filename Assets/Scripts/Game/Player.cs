@@ -17,6 +17,10 @@ public class Player : MonoBehaviour
 
     private InputAction ShootAction;
 
+    private InputAction JumpAction;
+
+    private InputAction SprintAction;
+
     [SerializeField]
     private CharacterController Controller;
 
@@ -62,6 +66,19 @@ public class Player : MonoBehaviour
 
     private bool bIsThrowing = false;
 
+
+    [SerializeField]
+    private float JumpStrength = 100.0f;
+
+
+    
+    private float RunningModifier = 0.0f;
+
+    [SerializeField]
+    private float MaxRunningModifier = 2.5f;
+    private bool bIsRunning = false;
+
+
     public static Player GetInstance()
     {
         return mInstance;
@@ -90,8 +107,37 @@ public class Player : MonoBehaviour
         ShootAction = InputActions.Player.Shoot;
         ShootAction.canceled += OnShootCancelled;
         ShootAction.started += OnShootStarted;
+
+        JumpAction = InputActions.Player.Jump;
+        JumpAction.performed += OnJumpPerformed;
+
+        SprintAction = InputActions.Player.Sprint;
+        SprintAction.started += OnSprintStarted;
+        SprintAction.canceled += OnSprintCancelled;
     }
 
+    private void OnSprintCancelled(InputAction.CallbackContext context)
+    {
+        bIsRunning = false;
+        RunningModifier = 0.0f;
+    }
+
+    private void OnSprintStarted(InputAction.CallbackContext context)
+    {
+        bIsRunning = true;
+        RunningModifier = 0.0f;
+    }
+
+    private void OnJumpPerformed(InputAction.CallbackContext context)
+    {
+        if (Controller.isGrounded)
+        {
+
+            PlayerVelocity.y = Mathf.Sqrt(JumpStrength  * Gravity);
+            Debug.Log("JUMP");
+        }
+        
+    }
 
     public float GetThrowStrengthPercentage()
     {
@@ -191,7 +237,10 @@ public class Player : MonoBehaviour
     {
         MoveAction.Enable();
         LookAction.Enable();
+        ShootAction.Enable();
+        JumpAction.Enable();
         InteractAction.Enable();
+        SprintAction.Enable();
 
         InputActions.Enable();
         Cursor.lockState = CursorLockMode.Locked; 
@@ -201,7 +250,10 @@ public class Player : MonoBehaviour
     {
         MoveAction.Disable();
         LookAction.Disable();
+        ShootAction.Disable();
+        JumpAction.Disable();
         InteractAction.Disable();
+        SprintAction.Disable();
 
         InputActions.Disable();
         Cursor.lockState = CursorLockMode.None;
@@ -220,6 +272,14 @@ public class Player : MonoBehaviour
             if (ThrowPower > MaxThrowPower)
             {
                 ThrowPower = MaxThrowPower;
+            }
+        }
+        if (bIsRunning)
+        {
+            RunningModifier += Time.deltaTime * 2.25f;
+            if (RunningModifier > MaxRunningModifier)
+            {
+                RunningModifier = MaxRunningModifier;
             }
         }
     }
@@ -259,22 +319,21 @@ public class Player : MonoBehaviour
         var moveVector = new Vector3(vector.x, 0, vector.y);
         moveVector = transform.TransformDirection(moveVector);
 
-       
-
-        if (bIsGrounded == false && PlayerVelocity.y > 0)
+        if (bIsGrounded && PlayerVelocity.y < 0)
         {
-            PlayerVelocity.y = Gravity;
-        }
-        else
-        {
-            PlayerVelocity.y = 0;
+            PlayerVelocity.y = -2f;
         }
 
-        PlayerVelocity.y -= Gravity;
+        PlayerVelocity.y -= Gravity * Time.deltaTime;
 
-        Vector3 finalMove = moveVector * MoveSpeed + PlayerVelocity.y * Vector3.up;
+        Vector3 finalMove = moveVector * GetCurrentMoveSpeed() + PlayerVelocity.y * Vector3.up;
         Controller.Move(finalMove * Time.deltaTime);
 
 
+    }
+
+    public float GetCurrentMoveSpeed()
+    {
+        return MoveSpeed + RunningModifier;
     }
 }
