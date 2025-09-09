@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Events;
 
 public class Box : IInteractable
 {
@@ -8,6 +9,7 @@ public class Box : IInteractable
 
     private bool bCanInteract = true;
 
+    public UnityEvent OnBoxDeath;
     public override bool CanInteract()
     {
         return bCanInteract;
@@ -33,6 +35,11 @@ public class Box : IInteractable
         bCanInteract = false;
         playerRef.PickupItem(gameObject);
 
+    }
+
+    private void OnDestroy()
+    {
+        OnBoxDeath?.Invoke();
     }
 
 }
