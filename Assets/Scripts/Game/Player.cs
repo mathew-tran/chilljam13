@@ -119,13 +119,11 @@ public class Player : MonoBehaviour
     private void OnSprintCancelled(InputAction.CallbackContext context)
     {
         bIsRunning = false;
-        RunningModifier = 0.0f;
     }
 
     private void OnSprintStarted(InputAction.CallbackContext context)
     {
         bIsRunning = true;
-        RunningModifier = 0.0f;
     }
 
     private void OnJumpPerformed(InputAction.CallbackContext context)
@@ -274,16 +272,15 @@ public class Player : MonoBehaviour
                 ThrowPower = MaxThrowPower;
             }
         }
-        if (bIsRunning)
-        {
-            RunningModifier += Time.deltaTime * 2.25f;
-            if (RunningModifier > MaxRunningModifier)
-            {
-                RunningModifier = MaxRunningModifier;
-            }
-        }
+
+
+        CameraRef.fieldOfView = Mathf.Lerp(60, 80, GetMaxSpeedPercent());
     }
 
+    private float GetMaxSpeedPercent()
+    {
+        return (MoveSpeed + RunningModifier) / (MoveSpeed + MaxRunningModifier);
+    }
     private void DetectObjects()
     {
         RaycastHit hit;
@@ -315,6 +312,23 @@ public class Player : MonoBehaviour
     private void Move(Vector2 vector)
     {
         bool bIsGrounded = Controller.isGrounded;
+
+        if (bIsRunning == false || vector == Vector2.zero)
+        {
+            RunningModifier -= 10.5f * Time.deltaTime;
+            if (RunningModifier <= 0f)
+            {
+                RunningModifier = 0f;
+            }
+        }
+        else if (bIsRunning && vector != Vector2.zero)
+        {
+            RunningModifier += Time.deltaTime * 2.25f;
+            if (RunningModifier > MaxRunningModifier)
+            {
+                RunningModifier = MaxRunningModifier;
+            }
+        }
 
         var moveVector = new Vector3(vector.x, 0, vector.y);
         moveVector = transform.TransformDirection(moveVector);
